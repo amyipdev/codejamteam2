@@ -7,9 +7,16 @@
 # at version 3. For more, see <https://gnu.org/licenses>.
 
 import os
-from flask import Flask
+from flask import Flask, jsonify
 import random
 import string
+import mysql.connector
+import time
+
+ghost = "localhost"
+guser = "mario"
+gpass = "secureddatabase"
+gdb = "mario"
 
 
 def gen_random(count: int) -> str:
@@ -38,8 +45,49 @@ def create_app(test_config=None):
         # probably already exists
         pass
 
-    @app.route('/hello')
+    app.config.update(
+        mhost=ghost,
+        muser=guser,
+        mpassword=gpass,
+        mdb=gdb
+    )
+
+    app.config["mysql"] = mysql.connector.connect(
+        host=app.config["mhost"],
+        user=app.config["muser"],
+        password=app.config["mpassword"],
+        database=app.config["mdb"]
+    )
+
+    @app.route("/hello", methods=["GET"])
     def hello():
         return "Hello, World!"
+
+    @app.route("/listg", methods=["GET"])
+    def listg():
+        cur = app.config["mysql"].cursor()
+        sql = "SELECT id FROM game"
+        cur.execute(sql)
+        res = [n[0] for n in cur.fetchall()]
+        cur.close()
+        return jsonify(res)
+
+    @app.route("/new", methods=["GET"])
+    def new():
+        nid = ''.join(random.choice(
+            list(string.ascii_letters + string.digits)
+        ) for n in range(4))
+        cur = app.config["mysql"].cursor()
+        sql = "SELECT id FROM game"
+        cur.execute(sql)
+        vals = [str(n[0]) for n in cur.fetchall()]
+        if nid in vals or nid == "0000":
+            return jsonify(["0000"])
+        sql = "INSERT INTO game(id, pc, sts) VALUES (%s, 0, %s)"
+        dat = (nid, time.time_ns()//1000)
+        cur.execute(sql, dat)
+        app.config["mysql"].commit()
+        cur.close()
+        return jsonify([nid])
 
     return app
