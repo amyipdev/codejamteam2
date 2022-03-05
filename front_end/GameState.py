@@ -1,2 +1,2 @@
 class GameState():
-    def __init__(self):
+    def __init__:
