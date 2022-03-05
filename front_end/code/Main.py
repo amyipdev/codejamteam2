@@ -17,11 +17,10 @@ def main():
     gs = GameState.GameState()
     running = True
     while running:
-        for e in p.event.get():
-            if e.type == p.QUIT:
-                running = False
-        gs.draw(screen)
+        gs.key_input()
+        gs.update(screen)
         clock.tick(FPS)
         p.display.flip()
+
 
 main()

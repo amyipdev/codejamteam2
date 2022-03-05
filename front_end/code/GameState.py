@@ -13,6 +13,21 @@ class GameState:
         self.entities_arr.append(p1)
         pygame.display.set_caption("Mario!")
 
-    def draw(self, screen):
+    def key_input(self):
+        for e in p.event.get():
+            if e.type == p.KEYUP:
+                for entity in self.entities_arr:
+                    if isinstance(entity, Player):
+                        entity.yPos = entity.yPos + 50
+            if e.type == p.KEYDOWN:
+                for entity in self.entities_arr:
+                    if isinstance(entity, Player):
+                        entity.yPos = entity.yPos - 50
+
+    #            if e.type == p.QUIT:
+    #                running = False
+
+    def update(self, screen):
         for entity in self.entities_arr:
+            entity.update()
             entity.draw(screen)

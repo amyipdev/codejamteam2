@@ -2,8 +2,8 @@ import pygame as p
 
 
 class Entity:
-    xPos = 0
-    yPos = 0
+    xPos = 100
+    yPos = 100
     image = None
 
     def __init__(self, image_file):
@@ -11,4 +11,7 @@ class Entity:
         self.image = image_file
 
     def draw(self, screen):
-        screen.blit(self.image, p.Rect(100, 200, 100, 200))
+        screen.blit(self.image, p.Rect(self.xPos, self.yPos, self.xPos, self.yPos))
+
+    def update(self):
+        print("hi")
