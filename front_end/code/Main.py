@@ -1,4 +1,5 @@
 import pygame as p
+import GameState
 
 WINDOW_WIDTH = 960 #1280
 WINDOW_HEIGHT = 600 #800
@@ -24,7 +25,6 @@ def main():
         p.display.flip()
 
 def drawGameState():
-    
-
+    print("drawGameState")
 
 main()
