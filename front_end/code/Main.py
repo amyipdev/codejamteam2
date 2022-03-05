@@ -20,11 +20,8 @@ def main():
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
-        drawGameState()
+        gs.draw()
         clock.tick(FPS)
         p.display.flip()
-
-def drawGameState():
-    print("drawGameState")
 
 main()
