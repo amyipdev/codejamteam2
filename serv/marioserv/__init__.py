@@ -19,6 +19,12 @@ gpass = "secureddatabase"
 gdb = "mario"
 
 
+def resolve_null(inp) -> int:
+    if inp is None:
+        return -1
+    return inp
+
+
 def gen_random(count: int) -> str:
     base = list(string.ascii_letters) \
          + list(string.digits) \
@@ -84,7 +90,7 @@ def create_app(test_config = None):
         if nid in vals or nid == "0000":
             return jsonify(["0000"])
         sql = "INSERT INTO game(id, pc, sts) VALUES (%s, 0, %s)"
-        dat = (nid, time.time_ns()//1000)
+        dat = (nid, time.time_ns()//1000000)
         cur.execute(sql, dat)
         app.config["mysql"].commit()
         cur.close()
@@ -99,7 +105,7 @@ def create_app(test_config = None):
             "xpos": int(request.form["xpos"]),
             "ypos": int(request.form["ypos"]),
             "lives": int(request.form["lives"]),
-            "fin": bool(request.form["fin"])
+            "fin": bool(int(request.form["fin"]))
         }
         sql = "UPDATE player SET coins = %s, xpos = %s, ypos = %s, "\
             "lives = %s, fin = %s WHERE pid = %s AND gid = %s"
@@ -115,7 +121,58 @@ def create_app(test_config = None):
         cur = app.config["mysql"].cursor()
         cur.execute(sql, dat)
         app.config["mysql"].commit()
-
+        sql = "SELECT * FROM game WHERE id = %s"
+        dat = [query["gid"]]
+        cur.execute(sql, dat)
+        rets = [list(n) for n in cur.fetchall()]
+        if len(rets) > 1:
+            raise RuntimeError("Major server error!")
+        elif not len(rets):
+            return jsonify([-1])
+        serv = rets[0]
+        ct = time.time_ns()//1000000
+        s2 = serv[2]+160000
+        if time.time_ns()//1000000 >= serv[2]+160000:
+            sql = "DELETE FROM player WHERE gid = %s"
+            dat = [query["gid"]]
+            cur.execute(sql, dat)
+            sql = "DELETE FROM game WHERE id = %s"
+            cur.execute(sql, dat)
+            app.config["mysql"].commit()
+            cur.close()
+            return jsonify([-1])
+        sql = "SELECT coins, xpos, ypos, lives, fin, tf"\
+            " FROM player WHERE pid = %s AND gid = %s"
+        dat = [query["pid"], query["gid"]]
+        cur.execute(sql, dat)
+        pls = [list(n) for n in cur.fetchall()]
+        print(f"{pls}")
+        for z in pls:
+            if z[4] == 0:
+                break
+        else:
+            sql = "DELETE FROM player WHERE gid = %s"
+            dat = [query["gid"]]
+            cur.execute(sql, dat)
+            sql = "DELETE FROM game WHERE id = %s"
+            cur.execute(sql, dat)
+            app.config["mysql"].commit()
+            cur.close()
+            return jsonify([-1])
+        res = {
+            "pc": serv[1],
+            "pls": []
+        }
+        for z in pls:
+            res["pls"].append({
+                "coins": z[0],
+                "xpos": z[1],
+                "ypos": z[2],
+                "lives": z[3],
+                "fin": z[4],
+                "tf": resolve_null(z[5])
+            })
+        return jsonify(res)
 
 
     @app.route("/newp", methods=["GET"])
@@ -126,6 +183,8 @@ def create_app(test_config = None):
         cur = app.config["mysql"].cursor()
         cur.execute(sql, dat)
         pc = cur.fetchall()[0][0]
+        if pc >= 4:
+            return jsonify([-1])
         sql = "INSERT INTO player(pid, gid, coins, xpos, ypos, lives, fin, tf)"\
             " VALUES (%s, %s, %s, %s, %s, %s, %s, null)"
         dat = [pc, gid, 0, 0, 0, 3, 0]
