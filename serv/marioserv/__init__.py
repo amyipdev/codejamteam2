@@ -26,11 +26,11 @@ def gen_random(count: int) -> str:
     return ''.join(random.choice(base) for i in range(count))
 
 
-def create_app(test_config=None):
+def create_app(test_config = None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
-        SECRET_KEY = gen_random(1024),
-        DATABASE = os.path.join(app.instance_path, "flaskr.sqlite"),
+        SECRET_KEY=gen_random(1024),
+        DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
     )
 
     if test_config is None:

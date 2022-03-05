@@ -1,7 +1,7 @@
 import pygame as p
 
-class Entity:
 
+class Entity:
     xPos = 0
     yPos = 0
     image = None
@@ -11,5 +11,4 @@ class Entity:
         image = image_file
 
     def draw(self):
-
-
+        print("hi")
