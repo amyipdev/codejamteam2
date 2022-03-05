@@ -7,7 +7,7 @@
 # at version 3. For more, see <https://gnu.org/licenses>.
 
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import random
 import string
 import mysql.connector
@@ -89,5 +89,52 @@ def create_app(test_config=None):
         app.config["mysql"].commit()
         cur.close()
         return jsonify([nid])
+
+    @app.route("/update", methods=["POST"])
+    def update():
+        query = {
+            "gid": str(request.form["gid"]),
+            "pid": int(request.form["pid"]),
+            "coins": int(request.form["coins"]),
+            "xpos": int(request.form["xpos"]),
+            "ypos": int(request.form["ypos"]),
+            "lives": int(request.form["lives"]),
+            "fin": bool(request.form["fin"])
+        }
+        sql = "UPDATE player SET coins = %s, xpos = %s, ypos = %s, "\
+            "lives = %s, fin = %s WHERE pid = %s AND gid = %s"
+        dat = [
+            query["coins"],
+            query["xpos"],
+            query["ypos"],
+            query["lives"],
+            query["fin"],
+            query["pid"],
+            query["gid"]
+        ]
+        cur = app.config["mysql"].cursor()
+        cur.execute(sql, dat)
+        app.config["mysql"].commit()
+
+
+
+    @app.route("/newp", methods=["GET"])
+    def newp():
+        gid = request.args["gid"]
+        sql = "SELECT pc FROM game WHERE id = %s"
+        dat = [gid]
+        cur = app.config["mysql"].cursor()
+        cur.execute(sql, dat)
+        pc = cur.fetchall()[0][0]
+        sql = "INSERT INTO player(pid, gid, coins, xpos, ypos, lives, fin, tf)"\
+            " VALUES (%s, %s, %s, %s, %s, %s, %s, null)"
+        dat = [pc, gid, 0, 0, 0, 3, 0]
+        cur.execute(sql, dat)
+        sql = "UPDATE game SET pc = %s WHERE id = %s"
+        dat = [pc+1, gid]
+        cur.execute(sql, dat)
+        app.config["mysql"].commit()
+        cur.close()
+        return jsonify([pc])
 
     return app
