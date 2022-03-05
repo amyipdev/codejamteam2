@@ -12,7 +12,7 @@ def main():
     p.init()
     screen = p.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     screen.fill(p.Color("white"))
-    p.display.set_caption("Chess Engine")
+    p.display.set_caption("Mario Race")
     clock = p.time.Clock()
     gs = GameState.GameState()
     running = True
