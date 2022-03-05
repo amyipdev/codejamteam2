@@ -8,7 +8,7 @@ class Entity:
 
     def __init__(self, image_file):
         print("hi")
-        image = image_file
+        self.image = image_file
 
-    def draw(self):
-        print("hi")
+    def draw(self, screen):
+        screen.blit(self.image, p.Rect(100, 200, 100, 200))
